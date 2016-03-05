@@ -1,4 +1,5 @@
-# life
+# Life [![Build Status](https://travis-ci.org/vrecan/death.svg?branch=master)](https://travis-ci.org/vrecan/death)
+
 Simple wrapper for handling creation and management of a single background goroutine.
 
 # Why?
