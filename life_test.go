@@ -15,6 +15,13 @@ func TestGivingLife(t *testing.T) {
 		vrecan.Start()
 
 	})
+	Convey("increment and decrement count from outside", t, func() {
+		vrecan := NewVrecan()
+		defer vrecan.Close()
+		vrecan.Start()
+		vrecan.WGAdd(1)
+		vrecan.WGDone()
+	})
 }
 
 type Vrecan struct {
