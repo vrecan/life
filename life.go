@@ -1,7 +1,6 @@
 package life
 
 import (
-	"fmt"
 	"sync"
 )
 
