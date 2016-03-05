@@ -33,7 +33,7 @@ func (v Vrecan) run() {
 Main:
 	for {
 		select {
-		case <-v.done:
+		case <-v.Done:
 			log.Debug("Done chan")
 			break Main
 		}

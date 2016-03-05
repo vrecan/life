@@ -6,13 +6,13 @@ import (
 
 type Life struct {
 	wg   *sync.WaitGroup
-	done chan struct{}
+	Done chan struct{}
 	run  func()
 	once *sync.Once
 }
 
 func NewLife() *Life {
-	return &Life{wg: &sync.WaitGroup{}, done: make(chan struct{}, 10), once: &sync.Once{}}
+	return &Life{wg: &sync.WaitGroup{}, Done: make(chan struct{}, 10), once: &sync.Once{}}
 }
 
 func (l Life) Start() {
@@ -37,7 +37,7 @@ func (l Life) WGDone() {
 
 //Close will wait for he background thread to finsh and then exit
 func (l Life) Close() error {
-	l.done <- struct{}{}
+	l.Done <- struct{}{}
 	l.wg.Wait()
 	return nil
 }
