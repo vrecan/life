@@ -1,4 +1,4 @@
-# Life [![Build Status](https://travis-ci.org/vrecan/death.svg?branch=master)](https://travis-ci.org/vrecan/death)
+# Life [![Build Status](https://travis-ci.org/vrecan/death.svg?branch=master)](https://travis-ci.org/vrecan/death) [![Coverage Status](https://coveralls.io/repos/github/vrecan/life/badge.svg?branch=master)](https://coveralls.io/github/vrecan/life?branch=master)
 
 Simple wrapper for handling creation and management of a single background goroutine.
 
