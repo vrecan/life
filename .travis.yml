@@ -3,8 +3,13 @@ language: go
 go:
    - 1.6
 
+env:
+  - secure: "FO4MEfltzNsEWB0yZQbR5ajYTeZs7ErRbra5RJ23FhKKbwsaIT6WQ17vHbYv1mDB1TWB1qa6fLWNf129OHNKHAXnjkJZ0889I1vMGFphLrtu4SSv6Y3RRiVjG6m2Ck/y15Vtk06waaeWiHa+t7edMx1paaeQW1LcdIfMH8U9+Ywg16/KKeyM3B4EqNpvAM58JuyhWoBpGcdObe/c7fwg730NlgB19FIxMAfpKhxDMgLqetxyUSyqIctINitb13CV8njPnu28MH2SXgbKf0gb+ti38iwiw/riZVNEKeZJJX2Ov60pgz37hR+tpprugCc11LQHoc1Eq+6tDTcPGgMJruCCmqng68oi4FRjSV3XVVoxG4lWPktwKyofSCu5I5kVTIzjhz9l37m49zroIqxTTfVwCTLntv/5H6rc65pBrseIYVa8RIyTX2o/diGjMG4qXzsxpmaHHxPE9IBZ9A5sPuo78GroucRi4zUDsw0gdeoPTrYNK9VC+2ZkHIx+5zyomOpTVethcYT8MAkHjrrUJgNk78hmx05ezkhKnuNoZo4rbbxGLxXdwqGZBYF2izn5QwZlgSZ2bGmSFg5ny1nfqDHYGLFO5UzzxrNk9Xpsrm0LCCz6brG/YmdDPFDHa3H0A++wsk8RyUwi3KY1d2ktsY4h5N9h+urCOf5NI1QJ4XI="
+
 install:
 - go get golang.org/x/tools/cmd/cover
+- go get github.com/mattn/goveralls
 - export PATH=$PATH:$HOME/gopath/bin
 - go install github.com/vrecan/life/./...
-script: go test ./... -cover --race
+script: go test -v -race -covermode=count -coverprofile=coverage.out && $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+
