@@ -20,10 +20,10 @@ func NewLife() *Life {
 //Start the background thread.
 func (l Life) Start() {
 	l.once.Do(func() {
-		l.wg.Add(1)
+		l.WGAdd(1)
+		defer l.wg.Done()
 		go l.run()
 	})
-
 }
 
 //SetRun will set the run function that will be called by Start.
