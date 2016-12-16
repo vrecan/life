@@ -21,9 +21,13 @@ func NewLife() *Life {
 func (l Life) Start() {
 	l.once.Do(func() {
 		l.WGAdd(1)
-		defer l.wg.Done()
-		go l.run()
+		go l.runner()
 	})
+}
+
+func (l Life) runner() {
+	defer l.wg.Done()
+	l.run()
 }
 
 //SetRun will set the run function that will be called by Start.
