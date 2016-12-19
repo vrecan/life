@@ -1,9 +1,10 @@
 package life
 
 import (
+	"testing"
+
 	log "github.com/cihub/seelog"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 )
 
 func TestGivingLife(t *testing.T) {
@@ -36,7 +37,6 @@ func NewVrecan() *Vrecan {
 }
 
 func (v Vrecan) run() {
-	defer v.Life.WGDone()
 Main:
 	for {
 		select {
