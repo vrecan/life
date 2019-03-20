@@ -53,7 +53,6 @@ func TestLife(t *testing.T) {
 }
 
 func TestLife_multiRoutine(t *testing.T) {
-	// TODO rename variable
 	p := NewLifeWithChildren()
 
 	started := waitOnChan(p.started, 5*time.Millisecond)
