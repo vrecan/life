@@ -10,15 +10,15 @@ import (
 )
 
 func TestLife(t *testing.T) {
-	v := NewVrecan()
+	v := NewSingleLife()
 
 	started := waitOnChan(v.started, 5*time.Millisecond)
 	if started == nil {
-		t.Fatalf("Vrecan started when it wasn't supposed to")
+		t.Fatalf("SingleLife started when it wasn't supposed to")
 	}
 	terminated := waitOnChan(v.terminated, 5*time.Millisecond)
 	if terminated == nil {
-		t.Fatalf("Vrecan terminated when it wasn't supposed to")
+		t.Fatalf("SingleLife terminated when it wasn't supposed to")
 	}
 
 	v.Start()
@@ -27,7 +27,7 @@ func TestLife(t *testing.T) {
 
 	terminated = waitOnChan(v.terminated, 5*time.Millisecond)
 	if terminated == nil {
-		t.Fatalf("Vrecan terminated when it wasn't supposed to")
+		t.Fatalf("SingleLife terminated when it wasn't supposed to")
 	}
 
 	// Set up a maximum wait time before failing
@@ -54,42 +54,42 @@ func TestLife(t *testing.T) {
 
 func TestLife_multiRoutine(t *testing.T) {
 	// TODO rename variable
-	p := NewPcman312()
+	p := NewLifeWithChildren()
 
 	started := waitOnChan(p.started, 5*time.Millisecond)
 	if started == nil {
-		t.Fatalf("pcman312 started when it wasn't supposed to")
+		t.Fatalf("LifeWithChildren started when it wasn't supposed to")
 	}
 	terminated := waitOnChan(p.terminated, 5*time.Millisecond)
 	if terminated == nil {
-		t.Fatalf("pcman312 terminated when it wasn't supposed to")
+		t.Fatalf("LifeWithChildren terminated when it wasn't supposed to")
 	}
-	if len(p.subRoutinesStarted) > 0 {
+	if len(p.childrenStarted) > 0 {
 		t.Fatalf("Subroutines have started when they weren't supposed to")
 	}
-	if len(p.subRoutinesTerminated) > 0 {
+	if len(p.childrenTerminated) > 0 {
 		t.Fatalf("Subroutines have started when they weren't supposed to")
 	}
 
-	// Start pcman312 and make sure that both the main goroutine and its subroutines are running
+	// Start LifeWithChildren and make sure that both the main goroutine and its subroutines are running
 	p.Start()
 	started = waitOnChan(p.started, 5*time.Millisecond)
 	ok(t, started)
 
 	terminated = waitOnChan(p.terminated, 5*time.Millisecond)
 	if terminated == nil {
-		t.Fatalf("pcman312 terminated when it wasn't supposed to")
+		t.Fatalf("LifeWithChildren terminated when it wasn't supposed to")
 	}
 
-	for i := 0; i < p.numSubRoutines; i++ {
-		err := waitOnChan(p.subRoutinesStarted, 5*time.Millisecond)
+	for i := 0; i < p.numChildren; i++ {
+		err := waitOnChan(p.childrenStarted, 5*time.Millisecond)
 		ok(t, err)
 	}
-	if len(p.subRoutinesStarted) > 0 {
+	if len(p.childrenStarted) > 0 {
 		t.Fatalf("Too many subroutines started")
 	}
 
-	terminated = waitOnChan(p.subRoutinesTerminated, 5*time.Millisecond)
+	terminated = waitOnChan(p.childrenTerminated, 5*time.Millisecond)
 	if terminated == nil {
 		t.Fatalf("Subroutines terminated when they weren't supposed to")
 	}
@@ -116,36 +116,36 @@ func TestLife_multiRoutine(t *testing.T) {
 	ok(t, terminated)
 
 	// Check on the subroutines
-	for i := 0; i < p.numSubRoutines; i++ {
-		err := waitOnChan(p.subRoutinesTerminated, 5*time.Millisecond)
+	for i := 0; i < p.numChildren; i++ {
+		err := waitOnChan(p.childrenTerminated, 5*time.Millisecond)
 		ok(t, err)
 	}
-	if len(p.subRoutinesTerminated) > 0 {
+	if len(p.childrenTerminated) > 0 {
 		t.Fatalf("Too many subroutines terminated")
 	}
-	if len(p.subRoutinesStarted) > 0 {
+	if len(p.childrenStarted) > 0 {
 		t.Fatalf("Subroutine has started when it shouldn't have")
 	}
 }
 
-type Vrecan struct {
+type SingleLife struct {
 	*Life
 
 	started    chan struct{}
 	terminated chan struct{}
 }
 
-func NewVrecan() Vrecan {
-	vrecan := Vrecan{
+func NewSingleLife() SingleLife {
+	l := SingleLife{
 		Life:       NewLife(),
 		started:    make(chan struct{}, 0),
 		terminated: make(chan struct{}, 0),
 	}
-	vrecan.SetRun(vrecan.run)
-	return vrecan
+	l.SetRun(l.run)
+	return l
 }
 
-func (v Vrecan) run() {
+func (v SingleLife) run() {
 	close(v.started)
 	select {
 	case <-v.Life.Done:
@@ -155,36 +155,36 @@ func (v Vrecan) run() {
 	}
 }
 
-type pcman312 struct {
+type LifeWithChildren struct {
 	*Life
 
 	started    chan struct{}
 	terminated chan struct{}
 
-	numSubRoutines int
+	numChildren int
 
-	subRoutinesStarted    chan struct{}
-	subRoutinesTerminated chan struct{}
+	childrenStarted    chan struct{}
+	childrenTerminated chan struct{}
 }
 
-func NewPcman312() pcman312 {
+func NewLifeWithChildren() LifeWithChildren {
 	numSubRoutines := 5
-	p := pcman312{
-		Life:                  NewLife(),
-		started:               make(chan struct{}, 0),
-		terminated:            make(chan struct{}, 0),
-		numSubRoutines:        numSubRoutines,
-		subRoutinesStarted:    make(chan struct{}, numSubRoutines),
-		subRoutinesTerminated: make(chan struct{}, numSubRoutines),
+	p := LifeWithChildren{
+		Life:               NewLife(),
+		started:            make(chan struct{}, 0),
+		terminated:         make(chan struct{}, 0),
+		numChildren:        numSubRoutines,
+		childrenStarted:    make(chan struct{}, numSubRoutines),
+		childrenTerminated: make(chan struct{}, numSubRoutines),
 	}
 	p.SetRun(p.run)
 	return p
 }
 
-func (p pcman312) run() {
+func (p LifeWithChildren) run() {
 	defer close(p.terminated)
 	close(p.started)
-	for i := 0; i < p.numSubRoutines; i++ {
+	for i := 0; i < p.numChildren; i++ {
 		p.Life.WGAdd(1)
 		go p.subRoutine()
 	}
@@ -194,15 +194,15 @@ func (p pcman312) run() {
 	}
 }
 
-func (p pcman312) subRoutine() {
+func (p LifeWithChildren) subRoutine() {
 	defer p.Life.WGDone()
-	p.subRoutinesStarted <- struct{}{}
+	p.childrenStarted <- struct{}{}
 
 	select {
 	case <-p.Life.Done:
 		// Same as above: make sure that life waits for this to finish
 		time.Sleep(5 * time.Millisecond)
-		p.subRoutinesTerminated <- struct{}{}
+		p.childrenTerminated <- struct{}{}
 	}
 }
 
