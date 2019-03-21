@@ -6,15 +6,21 @@ import (
 
 // Life handles the creation of the background thread and shutdown management
 type Life struct {
-	wg   *sync.WaitGroup
-	Done chan struct{}
-	run  func()
-	once *sync.Once
+	wg    *sync.WaitGroup
+	Done  chan struct{}
+	run   func()
+	once  *sync.Once
+	close *sync.Once
 }
 
 // NewLife creates life with the expected defaults
 func NewLife() *Life {
-	return &Life{wg: &sync.WaitGroup{}, Done: make(chan struct{}, 0), once: &sync.Once{}}
+	return &Life{
+		wg:    &sync.WaitGroup{},
+		Done:  make(chan struct{}, 0),
+		once:  &sync.Once{},
+		close: &sync.Once{},
+	}
 }
 
 // Start the background thread.
@@ -47,7 +53,9 @@ func (l Life) WGDone() {
 
 // Close will wait for the background thread to finish and then exit
 func (l Life) Close() error {
-	close(l.Done)
+	l.close.Do(func() {
+		close(l.Done)
+	})
 	l.wg.Wait()
 	return nil
 }

@@ -10,46 +10,56 @@ import (
 )
 
 func TestLife(t *testing.T) {
-	v := NewSingleLife()
+	t.Run("simple life", func(t *testing.T) {
+		v := NewSingleLife()
 
-	started := waitOnChan(v.started, 5*time.Millisecond)
-	if started == nil {
-		t.Fatalf("SingleLife started when it wasn't supposed to")
-	}
-	terminated := waitOnChan(v.terminated, 5*time.Millisecond)
-	if terminated == nil {
-		t.Fatalf("SingleLife terminated when it wasn't supposed to")
-	}
-
-	v.Start()
-	started = waitOnChan(v.started, 5*time.Millisecond)
-	ok(t, started)
-
-	terminated = waitOnChan(v.terminated, 5*time.Millisecond)
-	if terminated == nil {
-		t.Fatalf("SingleLife terminated when it wasn't supposed to")
-	}
-
-	// Set up a maximum wait time before failing
-	timer := time.NewTimer(50 * time.Millisecond)
-	defer timer.Stop()
-
-	errChan := make(chan error, 1)
-	go func() {
-		errChan <- v.Close()
-	}()
-
-	select {
-	case <-timer.C:
-		t.Fatalf("Timed out waiting for close to finish")
-	case err := <-errChan:
-		if err != nil {
-			t.Fatalf("Error received from Close call: %s", err)
+		started := waitOnChan(v.started, 5*time.Millisecond)
+		if started == nil {
+			t.Fatalf("SingleLife started when it wasn't supposed to")
 		}
-	}
+		terminated := waitOnChan(v.terminated, 5*time.Millisecond)
+		if terminated == nil {
+			t.Fatalf("SingleLife terminated when it wasn't supposed to")
+		}
 
-	terminated = waitOnChan(v.terminated, 5*time.Millisecond)
-	ok(t, terminated)
+		v.Start()
+		started = waitOnChan(v.started, 5*time.Millisecond)
+		ok(t, started)
+
+		terminated = waitOnChan(v.terminated, 5*time.Millisecond)
+		if terminated == nil {
+			t.Fatalf("SingleLife terminated when it wasn't supposed to")
+		}
+
+		// Set up a maximum wait time before failing
+		timer := time.NewTimer(50 * time.Millisecond)
+		defer timer.Stop()
+
+		errChan := make(chan error, 1)
+		go func() {
+			errChan <- v.Close()
+		}()
+
+		select {
+		case <-timer.C:
+			t.Fatalf("Timed out waiting for close to finish")
+		case err := <-errChan:
+			if err != nil {
+				t.Fatalf("Error received from Close call: %s", err)
+			}
+		}
+
+		terminated = waitOnChan(v.terminated, 5*time.Millisecond)
+		ok(t, terminated)
+	})
+
+	t.Run("close multiple times", func(t *testing.T) {
+		l := NewSingleLife()
+		err := l.Close()
+		ok(t, err)
+		err = l.Close() // This shouldn't panic
+		ok(t, err)
+	})
 }
 
 func TestLife_multiRoutine(t *testing.T) {
